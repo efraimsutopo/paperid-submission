@@ -17,7 +17,7 @@ import (
 func GenerateToken(user model.User) (string, error) {
 	claims := structs.TokenClaims{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(1 * time.Hour).Unix(),
+			ExpiresAt: time.Now().Add(config.Get().JWTExpiredDuration).Unix(),
 		},
 		Token: structs.Token{
 			UserID: user.ID,

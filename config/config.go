@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -17,7 +19,8 @@ type Config struct {
 	DBName     string `envconfig:"DB_NAME"`
 
 	// JWT Config
-	JWTSecret string `envconfig:"JWT_SECRET"`
+	JWTSecret          string        `envconfig:"JWT_SECRET"`
+	JWTExpiredDuration time.Duration `envconfig:"JWT_EXPIRED_DURATION"`
 }
 
 var cfg Config
