@@ -10,6 +10,7 @@ import (
 
 type Repository interface {
 	GetAllInPagination(userID uint64, req structs.GetAllInPaginationRequest) (*structs.Pagination, error)
+	GetTransactionSummary(userID uint64, req structs.GetTransactionSummary) (*model.TransactionSumary, error)
 	GetTransactionByID(userID, transactionID uint64) (*model.Transaction, error)
 	CreateTransaction(data model.Transaction) (*model.Transaction, error)
 	UpdateTransactionByID(userID, transactionID uint64, updates map[string]interface{}) error
@@ -57,6 +58,40 @@ func (r *repository) GetAllInPagination(userID uint64, req structs.GetAllInPagin
 	pagination.Rows = transactions
 
 	return &pagination, nil
+}
+
+func (r *repository) GetTransactionSummary(
+	userID uint64,
+	req structs.GetTransactionSummary,
+) (*model.TransactionSumary, error) {
+	var res model.TransactionSumary
+
+	err := r.db.Raw(`
+		SELECT
+			user_id,
+			MAX(amount) AS max_expense_amount,
+			AVG(amount) AS average_expense_amount,
+			COUNT(id) AS total_transaction
+		FROM transactions t
+		WHERE
+			user_id = ?
+			AND created_at >= ?
+			AND created_at <= ?
+			AND deleted_at IS NULL
+		GROUP BY user_id
+	`,
+		userID,
+		(req.StartDate + " 00:00:00"), (req.EndDate + " 23:59:59"),
+	).Scan(&res).Error
+	if err != nil {
+		return nil, err
+	}
+
+	res.UserID = userID
+	res.StartDate = req.StartDate
+	res.EndDate = req.EndDate
+
+	return &res, nil
 }
 
 func (r *repository) GetTransactionByID(userID, transactionID uint64) (*model.Transaction, error) {

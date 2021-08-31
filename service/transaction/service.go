@@ -14,6 +14,7 @@ import (
 
 type Service interface {
 	GetAllInPagination(ec echo.Context, req structs.GetAllInPaginationRequest) (*structs.Pagination, *structs.ErrorResponse)
+	GetTransactionSummary(ec echo.Context, req structs.GetTransactionSummary) (*model.TransactionSumary, *structs.ErrorResponse)
 	GetTransactionByID(ec echo.Context, transactionID uint64) (*model.Transaction, *structs.ErrorResponse)
 	CreateTransaction(ec echo.Context, req structs.CreateTransactionRequest) (*model.Transaction, *structs.ErrorResponse)
 	UpdateTransactionByID(ec echo.Context, req structs.UpdateTransactionRequest) (*model.Transaction, *structs.ErrorResponse)
@@ -44,6 +45,23 @@ func (s *service) GetAllInPagination(
 	res, err := s.transactionRepository.GetAllInPagination(token.UserID, req)
 	if err != nil {
 		return nil, s.handleError(err)
+	}
+
+	return res, nil
+}
+
+func (s *service) GetTransactionSummary(
+	ec echo.Context,
+	req structs.GetTransactionSummary,
+) (*model.TransactionSumary, *structs.ErrorResponse) {
+	token, err := helper.GetTokenFromContext(ec)
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+
+	res, err := s.transactionRepository.GetTransactionSummary(token.UserID, req)
+	if err != nil {
+		s.handleError(err)
 	}
 
 	return res, nil

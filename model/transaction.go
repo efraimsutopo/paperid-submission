@@ -16,3 +16,16 @@ type Transaction struct {
 	Amount    uint64         `json:"amount"`
 	Note      string         `json:"note"`
 }
+
+type TransactionSumary struct {
+	UserID               uint64  `json:"userId" gorm:"column:user_id"`
+	StartDate            string  `json:"startDate" gorm:"column:start_date"`
+	EndDate              string  `json:"endDate" gorm:"column:end_date"`
+	MaxExpenseAmount     uint64  `json:"maxExpenseAmount" gorm:"column:max_expense_amount"`
+	AverageExpenseAmount float64 `json:"averageExpenseAmount" gorm:"column:average_expense_amount"`
+	TotalTransaction     uint64  `json:"totalTransaction" gorm:"column:total_transaction"`
+}
+
+func (Transaction) TableName() string {
+	return "transactions"
+}

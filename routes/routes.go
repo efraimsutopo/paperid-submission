@@ -29,7 +29,7 @@ func (r *routes) RegisterRoutes(ec *echo.Echo) {
 
 	transaction := ec.Group("/transaction", r.TokenMiddleware())
 	transaction.GET("", r.Controller.Transaction.GetAllInPagination)
-	transaction.GET("/summary", nil) // TODO: Replace with real controller func
+	transaction.GET("/summary", r.Controller.Transaction.GetTransactionSummary)
 	transaction.GET("/:transactionID", r.Controller.Transaction.GetTransactionByID)
 	transaction.POST("", r.Controller.Transaction.CreateTransaction)
 	transaction.PUT("/:transactionID", r.Controller.Transaction.UpdateTransactionByID)

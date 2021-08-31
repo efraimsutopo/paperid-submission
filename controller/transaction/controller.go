@@ -1,8 +1,10 @@
 package transaction
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/efraimsutopo/paperid-submission/modules/customValidator"
 	transactionService "github.com/efraimsutopo/paperid-submission/service/transaction"
@@ -12,6 +14,7 @@ import (
 
 type Controller interface {
 	GetAllInPagination(ec echo.Context) error
+	GetTransactionSummary(ec echo.Context) error
 	GetTransactionByID(ec echo.Context) error
 	CreateTransaction(ec echo.Context) error
 	UpdateTransactionByID(ec echo.Context) error
@@ -29,7 +32,6 @@ func New(service transactionService.Service) Controller {
 }
 
 func (c *controller) GetAllInPagination(ec echo.Context) error {
-
 	var req structs.GetAllInPaginationRequest
 
 	if err := ec.Bind(&req); err != nil {
@@ -49,8 +51,54 @@ func (c *controller) GetAllInPagination(ec echo.Context) error {
 	return ec.JSON(http.StatusOK, res)
 }
 
-func (c *controller) GetTransactionByID(ec echo.Context) error {
+func (c *controller) GetTransactionSummary(ec echo.Context) error {
+	var req structs.GetTransactionSummary
 
+	if err := ec.Bind(&req); err != nil {
+		return ec.JSON(http.StatusBadRequest, err)
+	}
+
+	if req.StartDate != "" && req.EndDate != "" {
+		var (
+			errValidation = structs.ErrorResponse{
+				Code: http.StatusBadRequest,
+			}
+			formatErrorValidation = "invalid format date for field '%s', must be YYYY-MM-DD"
+		)
+		startDate, err := time.Parse("2006-01-02", req.StartDate)
+		if err != nil {
+			return ec.JSON(
+				errValidation.Code,
+				fmt.Sprintf(formatErrorValidation, "startDate"),
+			)
+		}
+		endDate, err := time.Parse("2006-01-02", req.EndDate)
+		if err != nil {
+			return ec.JSON(
+				errValidation.Code,
+				fmt.Sprintf(formatErrorValidation, "endDate"),
+			)
+		}
+		if startDate.After(endDate) {
+			return ec.JSON(
+				errValidation.Code,
+				"endDate must be greated than startDate",
+			)
+		}
+	} else {
+		req.StartDate = time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+		req.EndDate = time.Now().Format("2006-01-02")
+	}
+
+	res, errSvc := c.service.GetTransactionSummary(ec, req)
+	if errSvc != nil {
+		return ec.JSON(errSvc.Code, errSvc)
+	}
+
+	return ec.JSON(http.StatusOK, res)
+}
+
+func (c *controller) GetTransactionByID(ec echo.Context) error {
 	transactionID, err := strconv.ParseUint(ec.Param("transactionID"), 10, 64)
 	if err != nil || transactionID == 0 {
 		return ec.JSON(http.StatusBadRequest, structs.ErrorResponse{
@@ -117,7 +165,6 @@ func (c *controller) UpdateTransactionByID(ec echo.Context) error {
 }
 
 func (c *controller) DeleteTransactionByID(ec echo.Context) error {
-
 	transactionID, err := strconv.ParseUint(ec.Param("transactionID"), 10, 64)
 	if err != nil || transactionID == 0 {
 		return ec.JSON(http.StatusBadRequest, structs.ErrorResponse{

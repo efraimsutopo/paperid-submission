@@ -14,3 +14,7 @@ type Session struct {
 	UserID    uint64         `json:"-"`
 	Token     string         `json:"-"`
 }
+
+func (Session) TableName() string {
+	return "sessions"
+}
