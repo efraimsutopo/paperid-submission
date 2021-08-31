@@ -49,6 +49,15 @@ func TransformValidatorError(err error) structs.ErrorResponse {
 			case "oneof":
 				result.Message = fmt.Sprintf("field '%s' must be one of (%s)",
 					err.Field(), err.Param())
+			case "email":
+				result.Message = fmt.Sprintf("field '%s' must be a valid email format",
+					err.Field())
+			case "min":
+				result.Message = fmt.Sprintf("field '%s' minimum length is %s",
+					err.Field(), err.Param())
+			case "max":
+				result.Message = fmt.Sprintf("field '%s' maximum length is %s",
+					err.Field(), err.Param())
 			default:
 				result.Message = fmt.Sprintf("field '%s' failed to satisfy validation %s", err.Field(), err.ActualTag())
 			}

@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm"
 
 	userController "github.com/efraimsutopo/paperid-submission/controller/user"
+	sessionRepository "github.com/efraimsutopo/paperid-submission/repository/session"
 	userRepository "github.com/efraimsutopo/paperid-submission/repository/user"
 	userService "github.com/efraimsutopo/paperid-submission/service/user"
 
@@ -32,7 +33,7 @@ func main() {
 		FullTimestamp: true,
 	})
 
-	// Init config
+	// Init Config
 	if err := config.New(); err != nil {
 		logger.Error(err)
 		return
@@ -78,9 +79,10 @@ func main() {
 	// Initialize Repository
 	userRepo := userRepository.New(db)
 	transactionRepo := transactionRepository.New(db)
+	sessionRepo := sessionRepository.New(db)
 
 	// Initialize Service
-	userSvc := userService.New(userRepo)
+	userSvc := userService.New(userRepo, sessionRepo)
 	transactionSvc := transactionService.New(transactionRepo)
 
 	// Initialize Controller
