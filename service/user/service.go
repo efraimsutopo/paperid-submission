@@ -3,7 +3,6 @@ package user
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/efraimsutopo/paperid-submission/helper"
 	"github.com/efraimsutopo/paperid-submission/model"
@@ -116,10 +115,14 @@ func (s *service) Login(ec echo.Context, req structs.LoginRequest) (*structs.Ses
 }
 
 func (s *service) Logout(ec echo.Context) *structs.ErrorResponse {
-	tokenString := ec.Request().Header.Get("Authorization")
-	tokenString = strings.Replace(tokenString, "Bearer ", "", -1)
+	tokenString := helper.GetTokenStringFromContext(ec)
 
-	s.sessionRepository.DeleteSessionByToken(tokenString)
+	if err := s.sessionRepository.DeleteSessionByToken(tokenString); err != nil {
+		return &structs.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		}
+	}
 
 	return nil
 }

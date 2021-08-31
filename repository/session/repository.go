@@ -43,7 +43,9 @@ func (r *repository) GetSessionByToken(tokenString string) (*model.Session, erro
 }
 
 func (r *repository) DeleteSessionByToken(tokenString string) error {
-	err := r.db.Delete(&model.Session{Token: tokenString}).Error
+	err := r.db.
+		Where("token = ?", tokenString).
+		Delete(&model.Session{}).Error
 	if err != nil {
 		return err
 	}
