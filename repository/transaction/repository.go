@@ -23,12 +23,12 @@ func New(db *gorm.DB) Repository {
 }
 
 func (r *repository) GetTransactionByID(userID, transactionID uint64) (*model.Transaction, error) {
-	var res = model.Transaction{
-		ID:     transactionID,
-		UserID: userID,
-	}
+	var res model.Transaction
 
-	err := r.db.First(&res).Error
+	err := r.db.
+		Where("id = ?", transactionID).
+		Where("user_id = ?", userID).
+		First(&res).Error
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +61,17 @@ func (r *repository) UpdateTransactionByID(
 }
 
 func (r *repository) DeleteTransactionByID(userID, transactionID uint64) error {
-	var res = model.Transaction{
-		ID:     transactionID,
-		UserID: userID,
+	var data model.Transaction
+
+	err := r.db.
+		Where("id = ?", transactionID).
+		Where("user_id = ?", userID).
+		First(&data).Error
+	if err != nil {
+		return err
 	}
 
-	err := r.db.Delete(&res).Error
+	err = r.db.Delete(&data).Error
 	if err != nil {
 		return err
 	}

@@ -30,11 +30,11 @@ func (r *repository) CreateUser(data model.User) (*model.User, error) {
 }
 
 func (r *repository) GetUserByEmail(email string) (*model.User, error) {
-	res := model.User{
-		Email: email,
-	}
+	var res model.User
 
-	err := r.db.First(&res).Error
+	err := r.db.
+		Where("email = ?", email).
+		First(&res).Error
 	if err != nil {
 		return nil, err
 	}

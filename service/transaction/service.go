@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/efraimsutopo/paperid-submission/helper"
 	"github.com/efraimsutopo/paperid-submission/model"
 	transactionRepository "github.com/efraimsutopo/paperid-submission/repository/transaction"
 	"github.com/efraimsutopo/paperid-submission/structs"
@@ -33,7 +34,12 @@ func New(
 func (s *service) GetTransactionByID(ec echo.Context, transactionID uint64) (
 	*model.Transaction, *structs.ErrorResponse,
 ) {
-	res, err := s.transactionRepository.GetTransactionByID(1, transactionID) // TODO: Change Real User ID from token
+	token, err := helper.GetTokenFromContext(ec)
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+
+	res, err := s.transactionRepository.GetTransactionByID(token.UserID, transactionID)
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -43,8 +49,13 @@ func (s *service) GetTransactionByID(ec echo.Context, transactionID uint64) (
 func (s *service) CreateTransaction(ec echo.Context, req structs.CreateTransactionRequest) (
 	*model.Transaction, *structs.ErrorResponse,
 ) {
-	var toInsert = model.Transaction{
-		UserID: 1, // TODO: Change Real User ID from token
+	token, err := helper.GetTokenFromContext(ec)
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+
+	toInsert := model.Transaction{
+		UserID: token.UserID,
 		Type:   req.Type,
 		Amount: req.Amount,
 		Note:   req.Note,
@@ -61,6 +72,11 @@ func (s *service) CreateTransaction(ec echo.Context, req structs.CreateTransacti
 func (s *service) UpdateTransactionByID(ec echo.Context, req structs.UpdateTransactionRequest) (
 	*model.Transaction, *structs.ErrorResponse,
 ) {
+	token, err := helper.GetTokenFromContext(ec)
+	if err != nil {
+		return nil, s.handleError(err)
+	}
+
 	mapUpdates := make(map[string]interface{})
 
 	if req.Type != nil {
@@ -73,12 +89,12 @@ func (s *service) UpdateTransactionByID(ec echo.Context, req structs.UpdateTrans
 		mapUpdates["note"] = req.Note
 	}
 
-	err := s.transactionRepository.UpdateTransactionByID(1, req.ID, mapUpdates) // TODO: Change Real User ID from token
+	err = s.transactionRepository.UpdateTransactionByID(token.UserID, req.ID, mapUpdates)
 	if err != nil {
 		return nil, s.handleError(err)
 	}
 
-	res, err := s.transactionRepository.GetTransactionByID(1, req.ID) // TODO: Change Real User ID from token
+	res, err := s.transactionRepository.GetTransactionByID(token.UserID, req.ID)
 	if err != nil {
 		return nil, s.handleError(err)
 	}
@@ -87,7 +103,12 @@ func (s *service) UpdateTransactionByID(ec echo.Context, req structs.UpdateTrans
 }
 
 func (s *service) DeleteTransactionByID(ec echo.Context, transactionID uint64) *structs.ErrorResponse {
-	err := s.transactionRepository.DeleteTransactionByID(1, transactionID) // TODO: Change Real User ID from token
+	token, err := helper.GetTokenFromContext(ec)
+	if err != nil {
+		return s.handleError(err)
+	}
+
+	err = s.transactionRepository.DeleteTransactionByID(token.UserID, transactionID)
 	if err != nil {
 		return s.handleError(err)
 	}
