@@ -11,6 +11,7 @@ import (
 )
 
 type Controller interface {
+	GetAllInPagination(ec echo.Context) error
 	GetTransactionByID(ec echo.Context) error
 	CreateTransaction(ec echo.Context) error
 	UpdateTransactionByID(ec echo.Context) error
@@ -25,6 +26,27 @@ func New(service transactionService.Service) Controller {
 	return &controller{
 		service,
 	}
+}
+
+func (c *controller) GetAllInPagination(ec echo.Context) error {
+
+	var req structs.GetAllInPaginationRequest
+
+	if err := ec.Bind(&req); err != nil {
+		return ec.JSON(http.StatusBadRequest, err)
+	}
+
+	if err := ec.Validate(&req); err != nil {
+		errValidator := customValidator.TransformValidatorError(err)
+		return ec.JSON(errValidator.Code, errValidator)
+	}
+
+	res, errSvc := c.service.GetAllInPagination(ec, req)
+	if errSvc != nil {
+		return ec.JSON(errSvc.Code, errSvc)
+	}
+
+	return ec.JSON(http.StatusOK, res)
 }
 
 func (c *controller) GetTransactionByID(ec echo.Context) error {

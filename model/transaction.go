@@ -8,7 +8,7 @@ import (
 
 type Transaction struct {
 	ID        uint64         `json:"id" gorm:"primarykey"`
-	UserID    uint64         `json:"userId" gorm:"not null"`
+	UserID    uint64         `json:"userId" gorm:"index;not null"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`

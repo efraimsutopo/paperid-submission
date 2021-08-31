@@ -2,6 +2,14 @@ package structs
 
 // Transaction
 type (
+	GetAllInPaginationRequest struct {
+		Limit  int     `json:"limit" query:"limit"`
+		Page   int     `json:"page" query:"page"`
+		Sort   string  `json:"sort" query:"sort"`
+		Type   *string `json:"type" query:"type" validate:"omitempty,oneof=income expense"`
+		Amount *uint64 `json:"amount" query:"amount"`
+		Note   *string `json:"note" query:"note"`
+	}
 	CreateTransactionRequest struct {
 		Type   string `json:"type" validate:"required,oneof=income expense"`
 		Amount uint64 `json:"amount" validate:"required"`

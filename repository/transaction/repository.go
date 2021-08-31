@@ -1,11 +1,15 @@
 package transaction
 
 import (
+	"math"
+
 	"github.com/efraimsutopo/paperid-submission/model"
+	"github.com/efraimsutopo/paperid-submission/structs"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
+	GetAllInPagination(userID uint64, req structs.GetAllInPaginationRequest) (*structs.Pagination, error)
 	GetTransactionByID(userID, transactionID uint64) (*model.Transaction, error)
 	CreateTransaction(data model.Transaction) (*model.Transaction, error)
 	UpdateTransactionByID(userID, transactionID uint64, updates map[string]interface{}) error
@@ -20,6 +24,39 @@ func New(db *gorm.DB) Repository {
 	return &repository{
 		db,
 	}
+}
+
+func (r *repository) GetAllInPagination(userID uint64, req structs.GetAllInPaginationRequest) (*structs.Pagination, error) {
+	var (
+		transactions []*model.Transaction
+		pagination   = structs.Pagination{
+			Limit: req.Limit,
+			Page:  req.Page,
+			Sort:  req.Sort,
+		}
+	)
+
+	query := r.db.Where("user_id = ?", userID)
+	if req.Type != nil {
+		query = query.Where("type = ?", req.Type)
+	}
+	if req.Amount != nil {
+		query = query.Where("amount = ?", req.Amount)
+	}
+	if req.Note != nil {
+		query = query.Where("note = ?", req.Note)
+	}
+
+	err := query.
+		Scopes(paginate(transactions, &pagination, query)).
+		Find(&transactions).Error
+	if err != nil {
+		return nil, err
+	}
+
+	pagination.Rows = transactions
+
+	return &pagination, nil
 }
 
 func (r *repository) GetTransactionByID(userID, transactionID uint64) (*model.Transaction, error) {
@@ -77,4 +114,17 @@ func (r *repository) DeleteTransactionByID(userID, transactionID uint64) error {
 	}
 
 	return nil
+}
+
+func paginate(value interface{}, pagination *structs.Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
+	var totalRows int64
+	db.Model(value).Count(&totalRows)
+
+	pagination.TotalRows = totalRows
+	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.GetLimit())))
+	pagination.TotalPages = totalPages
+
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
+	}
 }
