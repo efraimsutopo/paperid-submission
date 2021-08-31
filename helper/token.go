@@ -72,3 +72,10 @@ func GetTokenFromContext(ec echo.Context) (structs.Token, error) {
 
 	return token, nil
 }
+
+func GetTokenStringFromContext(ec echo.Context) string {
+	tokenString := ec.Request().Header.Get("Authorization")
+	tokenString = strings.Replace(tokenString, "Bearer ", "", -1)
+
+	return tokenString
+}

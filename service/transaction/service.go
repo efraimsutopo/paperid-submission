@@ -7,14 +7,15 @@ import (
 	"github.com/efraimsutopo/paperid-submission/model"
 	transactionRepository "github.com/efraimsutopo/paperid-submission/repository/transaction"
 	"github.com/efraimsutopo/paperid-submission/structs"
+	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
 type Service interface {
-	GetTransactionByID(transactionID uint64) (*model.Transaction, *structs.ErrorResponse)
-	CreateTransaction(req structs.CreateTransactionRequest) (*model.Transaction, *structs.ErrorResponse)
-	UpdateTransactionByID(req structs.UpdateTransactionRequest) (*model.Transaction, *structs.ErrorResponse)
-	DeleteTransactionByID(transactionID uint64) *structs.ErrorResponse
+	GetTransactionByID(ec echo.Context, transactionID uint64) (*model.Transaction, *structs.ErrorResponse)
+	CreateTransaction(ec echo.Context, req structs.CreateTransactionRequest) (*model.Transaction, *structs.ErrorResponse)
+	UpdateTransactionByID(ec echo.Context, req structs.UpdateTransactionRequest) (*model.Transaction, *structs.ErrorResponse)
+	DeleteTransactionByID(ec echo.Context, transactionID uint64) *structs.ErrorResponse
 }
 
 type service struct {
@@ -29,7 +30,7 @@ func New(
 	}
 }
 
-func (s *service) GetTransactionByID(transactionID uint64) (
+func (s *service) GetTransactionByID(ec echo.Context, transactionID uint64) (
 	*model.Transaction, *structs.ErrorResponse,
 ) {
 	res, err := s.transactionRepository.GetTransactionByID(1, transactionID) // TODO: Change Real User ID from token
@@ -39,7 +40,7 @@ func (s *service) GetTransactionByID(transactionID uint64) (
 	return res, nil
 }
 
-func (s *service) CreateTransaction(req structs.CreateTransactionRequest) (
+func (s *service) CreateTransaction(ec echo.Context, req structs.CreateTransactionRequest) (
 	*model.Transaction, *structs.ErrorResponse,
 ) {
 	var toInsert = model.Transaction{
@@ -57,7 +58,7 @@ func (s *service) CreateTransaction(req structs.CreateTransactionRequest) (
 	return res, nil
 }
 
-func (s *service) UpdateTransactionByID(req structs.UpdateTransactionRequest) (
+func (s *service) UpdateTransactionByID(ec echo.Context, req structs.UpdateTransactionRequest) (
 	*model.Transaction, *structs.ErrorResponse,
 ) {
 	mapUpdates := make(map[string]interface{})
@@ -85,7 +86,7 @@ func (s *service) UpdateTransactionByID(req structs.UpdateTransactionRequest) (
 	return res, nil
 }
 
-func (s *service) DeleteTransactionByID(transactionID uint64) *structs.ErrorResponse {
+func (s *service) DeleteTransactionByID(ec echo.Context, transactionID uint64) *structs.ErrorResponse {
 	err := s.transactionRepository.DeleteTransactionByID(1, transactionID) // TODO: Change Real User ID from token
 	if err != nil {
 		return s.handleError(err)

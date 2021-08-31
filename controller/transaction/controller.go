@@ -37,7 +37,7 @@ func (c *controller) GetTransactionByID(ec echo.Context) error {
 		})
 	}
 
-	res, errSvc := c.service.GetTransactionByID(transactionID)
+	res, errSvc := c.service.GetTransactionByID(ec, transactionID)
 	if errSvc != nil {
 		return ec.JSON(errSvc.Code, errSvc)
 	}
@@ -57,7 +57,7 @@ func (c *controller) CreateTransaction(ec echo.Context) error {
 		return ec.JSON(errValidator.Code, errValidator)
 	}
 
-	res, err := c.service.CreateTransaction(req)
+	res, err := c.service.CreateTransaction(ec, req)
 	if err != nil {
 		return ec.JSON(err.Code, err)
 	}
@@ -86,7 +86,7 @@ func (c *controller) UpdateTransactionByID(ec echo.Context) error {
 	}
 
 	req.ID = transactionID
-	res, errSvc := c.service.UpdateTransactionByID(req)
+	res, errSvc := c.service.UpdateTransactionByID(ec, req)
 	if errSvc != nil {
 		return ec.JSON(errSvc.Code, errSvc)
 	}
@@ -104,7 +104,7 @@ func (c *controller) DeleteTransactionByID(ec echo.Context) error {
 		})
 	}
 
-	errSvc := c.service.DeleteTransactionByID(transactionID)
+	errSvc := c.service.DeleteTransactionByID(ec, transactionID)
 	if errSvc != nil {
 		return ec.JSON(errSvc.Code, errSvc)
 	}

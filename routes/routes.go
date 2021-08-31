@@ -20,15 +20,14 @@ func New(ctrl controller.Controller) Routes {
 }
 
 func (r *routes) RegisterRoutes(ec *echo.Echo) {
-	// TODO: Token Middleware
 
 	user := ec.Group("/user")
 	user.POST("/register", r.Controller.User.Register)
 	user.POST("/login", r.Controller.User.Login)
-	user.POST("/logout", r.Controller.User.Logout)
-	user.GET("/profile", nil) // TODO: Replace with real controller func
+	user.POST("/logout", r.Controller.User.Logout, TokenMiddleware())
+	user.GET("/profile", nil, TokenMiddleware()) // TODO: Replace with real controller func
 
-	transaction := ec.Group("/transaction")
+	transaction := ec.Group("/transaction", TokenMiddleware())
 	transaction.GET("", nil)         // TODO: Replace with real controller func
 	transaction.GET("/summary", nil) // TODO: Replace with real controller func
 	transaction.GET("/:transactionID", r.Controller.Transaction.GetTransactionByID)
