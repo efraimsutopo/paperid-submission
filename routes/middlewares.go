@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/efraimsutopo/paperid-submission/config/constant"
@@ -9,21 +8,25 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func TokenMiddleware() echo.MiddlewareFunc {
+func (r *routes) TokenMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			tokenString := helper.GetTokenStringFromContext(c)
 			if tokenString == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, "empty header Authorization")
+				return echo.NewHTTPError(http.StatusUnauthorized, "empty header Authorization")
 			}
 
 			tokenClaim, err := helper.ClaimToken(tokenString)
 			if err != nil {
-				err = errors.New("invalid token")
-				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+				return echo.NewHTTPError(http.StatusForbidden, "invalid token")
 			}
 
 			c.Set(constant.TokenKey, tokenClaim.Token)
+
+			err = r.Controller.User.CheckValidSession(c)
+			if err != nil {
+				return echo.NewHTTPError(http.StatusForbidden, "invalid session")
+			}
 
 			return next(c)
 		}

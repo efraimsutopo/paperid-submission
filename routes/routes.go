@@ -24,10 +24,10 @@ func (r *routes) RegisterRoutes(ec *echo.Echo) {
 	user := ec.Group("/user")
 	user.POST("/register", r.Controller.User.Register)
 	user.POST("/login", r.Controller.User.Login)
-	user.POST("/logout", r.Controller.User.Logout, TokenMiddleware())
-	user.GET("/profile", nil, TokenMiddleware()) // TODO: Replace with real controller func
+	user.POST("/logout", r.Controller.User.Logout, r.TokenMiddleware())
+	user.GET("/profile", r.Controller.User.Profile, r.TokenMiddleware())
 
-	transaction := ec.Group("/transaction", TokenMiddleware())
+	transaction := ec.Group("/transaction", r.TokenMiddleware())
 	transaction.GET("", nil)         // TODO: Replace with real controller func
 	transaction.GET("/summary", nil) // TODO: Replace with real controller func
 	transaction.GET("/:transactionID", r.Controller.Transaction.GetTransactionByID)

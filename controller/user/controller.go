@@ -13,6 +13,8 @@ type Controller interface {
 	Register(ec echo.Context) error
 	Login(ec echo.Context) error
 	Logout(ec echo.Context) error
+	Profile(ec echo.Context) error
+	CheckValidSession(ec echo.Context) error
 }
 
 type controller struct {
@@ -74,4 +76,17 @@ func (c *controller) Logout(ec echo.Context) error {
 	return ec.JSON(http.StatusOK, structs.MessageResponse{
 		Message: "successfully logout",
 	})
+}
+
+func (c *controller) Profile(ec echo.Context) error {
+	res, errSvc := c.service.GetUser(ec)
+	if errSvc != nil {
+		return ec.JSON(errSvc.Code, errSvc)
+	}
+
+	return ec.JSON(http.StatusOK, res)
+}
+
+func (c *controller) CheckValidSession(ec echo.Context) error {
+	return c.service.CheckValidSession(ec)
 }

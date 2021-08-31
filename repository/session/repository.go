@@ -31,10 +31,10 @@ func (r *repository) CreateSession(data model.Session) (*model.Session, error) {
 }
 
 func (r *repository) GetSessionByToken(tokenString string) (*model.Session, error) {
-	res := model.Session{
-		Token: tokenString,
-	}
-	err := r.db.First(&res).Error
+	var res model.Session
+	err := r.db.
+		Where("token = ?", tokenString).
+		First(&res).Error
 	if err != nil {
 		return nil, err
 	}

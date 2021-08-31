@@ -67,7 +67,7 @@ func keyFunc(t *jwt.Token) (interface{}, error) {
 func GetTokenFromContext(ec echo.Context) (structs.Token, error) {
 	token, ok := ec.Get(constant.TokenKey).(structs.Token)
 	if !ok {
-		return structs.Token{}, errors.New("invalid token")
+		return structs.Token{}, errors.New("failed to get token")
 	}
 
 	return token, nil

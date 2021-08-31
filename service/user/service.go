@@ -17,6 +17,8 @@ type Service interface {
 	Register(ec echo.Context, req structs.RegisterUserRequest) (*structs.UserResponse, *structs.ErrorResponse)
 	Login(ec echo.Context, req structs.LoginRequest) (*structs.SessionResponse, *structs.ErrorResponse)
 	Logout(ec echo.Context) *structs.ErrorResponse
+	GetUser(ec echo.Context) (*structs.UserResponse, *structs.ErrorResponse)
+	CheckValidSession(ec echo.Context) error
 }
 
 type service struct {
@@ -124,5 +126,38 @@ func (s *service) Logout(ec echo.Context) *structs.ErrorResponse {
 		}
 	}
 
+	return nil
+}
+
+func (s *service) GetUser(ec echo.Context) (*structs.UserResponse, *structs.ErrorResponse) {
+	token, err := helper.GetTokenFromContext(ec)
+	if err != nil {
+		return nil, &structs.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		}
+	}
+
+	user, err := s.userRepository.GetUserByEmail(token.Email)
+	if err != nil {
+		return nil, &structs.ErrorResponse{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		}
+	}
+
+	return &structs.UserResponse{
+		ID:    user.ID,
+		Email: user.Email,
+		Name:  user.Name,
+	}, nil
+}
+
+func (s *service) CheckValidSession(ec echo.Context) error {
+	tokenString := helper.GetTokenStringFromContext(ec)
+	_, err := s.sessionRepository.GetSessionByToken(tokenString)
+	if err != nil {
+		return errors.New("invalid session")
+	}
 	return nil
 }
